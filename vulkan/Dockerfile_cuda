@@ -1,0 +1,19 @@
+FROM nvidia/cuda:11.4.0-base-ubuntu20.04
+
+RUN apt update
+RUN apt -y install cmake gcc g++ ninja-build libvulkan-dev
+
+ADD source /cpp_vulkan
+
+WORKDIR /cpp_vulkan/build
+
+RUN cmake -G "Ninja" -D CMAKE_BUILD_TYPE=Release -Wno-dev -D BUILD_SHARED_LIBS:BOOL=OFF ../
+RUN cmake --build .
+
+FROM nvidia/cuda:11.4.0-base-ubuntu20.04
+
+RUN apt update && apt -y install libvulkan1
+
+COPY --from=0 /cpp_vulkan/build/cpp_vulkan .
+
+CMD ["./cpp_vulkan"]
